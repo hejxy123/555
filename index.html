@@ -53,6 +53,7 @@ button{
   margin-top:10px;
   border-radius:5px;
   display:none;
+  white-space: pre-wrap;
 }
 </style>
 </head>
@@ -68,10 +69,8 @@ button{
 
 <script>
 // ===== CONFIG =====
-// Change this to your ESP32 IP
-const ESP_IP = "http://192.168.1.41";
+const ESP_IP = "http://192.168.1.41"; // <-- set your ESP IP here
 
-// ===== FUNCTIONS =====
 let espConnected = false;
 
 // Show floating notifications
@@ -82,7 +81,7 @@ function showNotification(msg, color='#22c55e'){
   setTimeout(()=>{status.innerText='';}, 2000);
 }
 
-// Save note to ESP
+// Save note
 function saveNote(){
   const noteText = document.getElementById('note').value;
   if(noteText.trim() === "") return showNotification("Cannot save empty note",'#f87171');
@@ -99,31 +98,12 @@ function saveNote(){
   })
   .catch(err=>{
     showNotification("Error saving note",'#f87171');
-    console.error(err);
     espConnected = false;
     updateConnectionStatus();
   });
 }
 
-// Check ESP connection every 2 seconds
-function checkConnection(){
-  fetch(`${ESP_IP}/`)
-  .then(res=>{
-    if(res.ok){
-      espConnected = true;
-      updateConnectionStatus();
-    }else{
-      espConnected = false;
-      updateConnectionStatus();
-    }
-  })
-  .catch(err=>{
-    espConnected = false;
-    updateConnectionStatus();
-  });
-}
-
-// Update connection status text
+// Update ESP connection status
 function updateConnectionStatus(){
   const espStatus = document.getElementById('espStatus');
   if(espConnected){
@@ -133,6 +113,19 @@ function updateConnectionStatus(){
     espStatus.innerText = "Not connected";
     espStatus.style.color = "#f87171";
   }
+}
+
+// Check ESP connection every 2 seconds
+function checkConnection(){
+  fetch(`${ESP_IP}/`)
+  .then(res=>{
+    espConnected = res.ok;
+    updateConnectionStatus();
+  })
+  .catch(err=>{
+    espConnected = false;
+    updateConnectionStatus();
+  });
 }
 
 // Poll ESP for requested tasks every 1 second
@@ -150,17 +143,17 @@ function pollTask(){
     }
   })
   .catch(err=>{
-    console.error(err);
     espConnected = false;
     updateConnectionStatus();
   });
 }
 
-// ===== START POLLING =====
+// Start polling
 setInterval(checkConnection, 2000);
 setInterval(pollTask, 1000);
 </script>
 </body>
 </html>
+
 
 
